@@ -21,7 +21,7 @@ module ActsAsRemovable
         where(all.table[_acts_as_removable_options[:column_name]].not_eq(nil).to_sql)
       }
 
-      scope :actives, -> {
+      scope :present, -> {
         where(all.table[_acts_as_removable_options[:column_name]].eq(nil).to_sql)
       }
 
