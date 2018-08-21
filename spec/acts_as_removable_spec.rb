@@ -63,12 +63,12 @@ describe 'acts_as_removable' do
     MySecondModel.create!.remove!
 
     expect(MyModel.count).to be(2)
-    expect(MyModel.actives.count).to be(1)
+    expect(MyModel.present.count).to be(1)
     expect(MyModel.removed.count).to be(1)
     expect(MyModel.unscoped.count).to be(2)
 
     expect(MySecondModel.count).to be(2)
-    expect(MySecondModel.actives.count).to be(1)
+    expect(MySecondModel.present.count).to be(1)
     expect(MySecondModel.removed.count).to be(1)
     expect(MySecondModel.unscoped.count).to be(2)
   end
