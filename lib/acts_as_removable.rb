@@ -8,14 +8,27 @@ module ActsAsRemovable
   extend ActiveSupport::Concern
 
   module ClassMethods
+    #
+    # call-seq:
+    #   acts_as_removable
+    #   acts_as_removable column_name: 'other_column_name', validate: true
+    #
     # Add ability to remove ActiveRecord instances
     #
-    #   acts_as_removable
-    #   acts_as_removable column_name: 'other_column_name'
+    # ==== Options
     #
-    # ===== Options
+    # [:column_name]
+    #     \[+Symbol+ or +String+\]
     #
-    # * <tt>:column_name</tt> - A symbol or string with the column to use for removal timestamp.
+    #     A column name to use for removal timestamp.
+    #
+    #     <b>default:</b> 'removed_at'
+    # [:validate]
+    #     \[+true+ or +false+\]
+    #
+    #     Should record validations be performed with removal.
+    #
+    #     <b>default:</b> false
     def acts_as_removable(options = {})
       _acts_as_removable_options.merge!(options)
 
@@ -66,19 +79,29 @@ module ActsAsRemovable
           _update_remove_attribute(:unremove, nil, true, options)
         end
 
-        def _update_remove_attribute(callback, value, with_bang = false, options = {})
+        private
+
+        def _default_remove_save_options # :nodoc:
+          { validate: self.class._acts_as_removable_options[:validate] }
+        end
+
+        def _update_remove_attribute(callback, value, with_bang = false, options = {}) # :nodoc:
           self.class.transaction do
             run_callbacks callback.to_sym do
               send("#{self.class._acts_as_removable_options[:column_name]}=", value)
-              with_bang ? save!(options) : save(options)
+              options = _default_remove_save_options.merge(options)
+              with_bang ? save!(**options) : save(**options)
             end
           end
         end
       end
     end
 
-    def _acts_as_removable_options
-      @_acts_as_removable_options ||= { column_name: 'removed_at' }
+    def _acts_as_removable_options # :nodoc:
+      @_acts_as_removable_options ||= {
+        column_name: 'removed_at',
+        validate: false
+      }
     end
   end
 end

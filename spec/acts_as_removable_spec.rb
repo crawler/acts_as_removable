@@ -96,4 +96,35 @@ describe 'acts_as_removable' do
     expect(r.callback_before_unremove).to be(true)
     expect(r.callback_after_unremove).to be(true)
   end
+
+  context 'validate: true option' do
+    class Invalid < ActiveRecord::Base
+      acts_as_removable validate: true
+      validates :name, presence: true
+    end
+
+    subject do
+      Invalid.new.tap { |r| r.save(validate: false) }
+    end
+
+    before do
+      ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS 'invalids'")
+      ActiveRecord::Base.connection.create_table(:invalids) do |t|
+        t.string :name
+        t.timestamp :removed_at
+      end
+    end
+
+    it 'should not remove' do
+      expect(subject.remove).to be(false)
+      expect(subject.reload.removed_at).to be(nil)
+      expect(subject.removed?).to be(false)
+    end
+
+    it 'should raise error' do
+      expect { subject.remove! }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(subject.reload.removed_at).to be(nil)
+      expect(subject.removed?).to be(false)
+    end
+  end
 end
