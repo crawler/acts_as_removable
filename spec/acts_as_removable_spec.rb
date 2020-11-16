@@ -25,7 +25,7 @@ describe 'acts_as_removable' do
     acts_as_removable column_name: :use_this_column
   end
 
-  before do
+  before :all do
     # setup database
     db_file = File.expand_path(File.join(File.dirname(__FILE__), '..', 'tmp', 'acts_as_removable.db'))
     Dir.mkdir(File.dirname(db_file)) unless File.exist?(File.dirname(db_file))
@@ -33,15 +33,19 @@ describe 'acts_as_removable' do
       adapter:  'sqlite3',
       database: "#{File.expand_path(File.join(File.dirname(__FILE__), '..'))}/tmp/acts_as_removable.db"
     )
-    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS 'my_models'")
-    ActiveRecord::Base.connection.create_table(:my_models) do |t|
+    ActiveRecord::Base.connection.create_table(:my_models, force: true) do |t|
       t.timestamp :removed_at
     end
-    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS 'my_second_models'")
-    ActiveRecord::Base.connection.create_table(:my_second_models) do |t|
+    ActiveRecord::Base.connection.create_table(:my_second_models, force: true) do |t|
       t.string :name
       t.timestamp :use_this_column
     end
+    ActiveRecord::Base.connection.create_table(:other_models, force: true)
+  end
+
+  it 'should be removable' do
+    expect(MyModel).to be_removable
+    expect(MyModel.new).to be_removable
   end
 
   it 'test column and check method' do
@@ -108,8 +112,7 @@ describe 'acts_as_removable' do
     end
 
     before do
-      ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS 'invalids'")
-      ActiveRecord::Base.connection.create_table(:invalids) do |t|
+      ActiveRecord::Base.connection.create_table(:invalids, force: true) do |t|
         t.string :name
         t.timestamp :removed_at
       end
@@ -125,6 +128,25 @@ describe 'acts_as_removable' do
       expect { subject.remove! }.to raise_error(ActiveRecord::RecordInvalid)
       expect(subject.reload.removed_at).to be(nil)
       expect(subject.removed?).to be(false)
+    end
+  end
+
+  context 'other models' do
+    class OtherModel < ActiveRecord::Base
+    end
+
+    subject { OtherModel }
+
+    before :all do
+      ActiveRecord::Base.connection.create_table(:other_models, force: true) do |t|
+        t.string :name
+        t.timestamp :removed_at
+      end
+    end
+
+    it 'should not be removable' do
+      expect(subject).to_not be_removable
+      expect(subject.new).to_not be_removable
     end
   end
 end

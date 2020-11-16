@@ -30,6 +30,8 @@ module ActsAsRemovable
     #
     #     <b>default:</b> false
     def acts_as_removable(options = {})
+      @_acts_as_removable = true
+
       _acts_as_removable_options.merge!(options)
 
       scope :removed, lambda {
@@ -97,6 +99,10 @@ module ActsAsRemovable
       end
     end
 
+    def removable?
+      @_acts_as_removable || false
+    end
+
     def _acts_as_removable_options # :nodoc:
       @_acts_as_removable_options ||= {
         column_name: 'removed_at',
@@ -104,6 +110,8 @@ module ActsAsRemovable
       }
     end
   end
+
+  delegate :removable?, to: :class
 end
 
 ActiveRecord::Base.send(:include, ActsAsRemovable)
