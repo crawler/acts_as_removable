@@ -29,7 +29,7 @@ module ActsAsRemovable
     #     Should record validations be performed with removal.
     #
     #     <b>default:</b> false
-    def acts_as_removable(options = {})
+    def acts_as_removable(**options)
       @_acts_as_removable = true
 
       _acts_as_removable_options.merge!(options)
@@ -65,20 +65,20 @@ module ActsAsRemovable
           send(self.class._acts_as_removable_options[:column_name]).present?
         end
 
-        def remove(options = {})
-          _update_remove_attribute(:remove, Time.now, false, options)
+        def remove(**options)
+          _update_remove_attribute(Time.now, callback: :remove, with_bang: false, **options)
         end
 
-        def remove!(options = {})
-          _update_remove_attribute(:remove, Time.now, true, options)
+        def remove!(**options)
+          _update_remove_attribute(Time.now, callback: :remove, with_bang: true, **options)
         end
 
-        def unremove(options = {})
-          _update_remove_attribute(:unremove, nil, false, options)
+        def unremove(**options)
+          _update_remove_attribute(nil, callback: :unremove, with_bang: false, **options)
         end
 
-        def unremove!(options = {})
-          _update_remove_attribute(:unremove, nil, true, options)
+        def unremove!(**options)
+          _update_remove_attribute(nil, callback: :unremove, with_bang: true, **options)
         end
 
         private
@@ -87,7 +87,7 @@ module ActsAsRemovable
           { validate: self.class._acts_as_removable_options[:validate] }
         end
 
-        def _update_remove_attribute(callback, value, with_bang = false, options = {}) # :nodoc:
+        def _update_remove_attribute(value, callback:, with_bang: false, **options) # :nodoc:
           self.class.transaction do
             run_callbacks callback.to_sym do
               send("#{self.class._acts_as_removable_options[:column_name]}=", value)
@@ -106,7 +106,7 @@ module ActsAsRemovable
     def _acts_as_removable_options # :nodoc:
       @_acts_as_removable_options ||= {
         column_name: 'removed_at',
-        validate: false
+        validate:    false
       }
     end
   end
@@ -114,4 +114,4 @@ module ActsAsRemovable
   delegate :removable?, to: :class
 end
 
-ActiveRecord::Base.send(:include, ActsAsRemovable)
+ActiveRecord::Base.include(ActsAsRemovable)
