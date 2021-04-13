@@ -1,14 +1,17 @@
 require:
   - rubocop-performance
+  - rubocop-rspec
 
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.7
+  NewCops: enable
+  SuggestExtensions: false
 
-Layout/AlignHash:
+Layout/HashAlignment:
   EnforcedHashRocketStyle: table
   EnforcedColonStyle: table
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 120
 
 Metrics/AbcSize:
@@ -19,6 +22,14 @@ Metrics/MethodLength:
 
 Metrics/BlockLength:
   Enabled: false
+  Exclude:
+    - "spec/**/*.rb"
 
 Style/Documentation:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/BeforeAfterAll:
   Enabled: false
